@@ -1,4 +1,4 @@
-const clientId = '45956edb965b4ccd952b7f751b55173a';
+const clientId = 'ce99999c20e14f5ab8e3175ff709ee51';
 const redirectUri = 'http://localhost:3000/';
 let accessToken = '';
 
@@ -22,7 +22,7 @@ const Spotify = {
             console.log('accessToken: ', accessToken);
             return accessToken;
         } else {
-            const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectUri}`;
+            const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public user-read-playback-state user-modify-playback-state&redirect_uri=${redirectUri}`;
             window.location = accessUrl;
         }
     },
@@ -115,35 +115,27 @@ const Spotify = {
         }
     },
 
-    async getDeviceId() {
+    async playTrack(track) {
         const accessToken = Spotify.getAccessToken();
         const headers = { Authorization: `Bearer ${accessToken}` };
+        let deviceId = '';
 
         try {
             const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
                 headers
             });
-            console.log(response);
             if (response.ok) {
                 const jsonResponse = await response.json();
-                return jsonResponse.devices[0].id;
+                deviceId = jsonResponse.devices[0].id;
             }
         } catch (error) {
             console.log(error);
         }
-    },
-
-    async playTrack(track) {
-        const trackUri = track.uri;
-        const accessToken = Spotify.getAccessToken();
-        const headers = { Authorization: `Bearer ${accessToken}` };
-        const deviceId = await Spotify.getDeviceId();
-
 
         fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
             headers,
             method: 'PUT',
-            body: JSON.stringify({ uris: [trackUri] })
+            body: JSON.stringify({ uris: [track.uri] })
         });
     }
 };

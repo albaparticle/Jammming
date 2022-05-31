@@ -47,7 +47,7 @@ export default class App extends React.Component {
     );
   }
   playTrack(track) {
-    this.setState({currentTrack: track});
+    this.setState({currentTrack: track.id});
     Spotify.playTrack(track);
   }
 
