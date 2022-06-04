@@ -1,6 +1,9 @@
 const clientId = 'ce99999c20e14f5ab8e3175ff709ee51';
+// const redirectUri = 'http://waggish-volcano.surge.sh/';
 const redirectUri = 'http://localhost:3000/';
+const scopes = 'playlist-modify-public user-read-playback-state user-modify-playback-state';
 let accessToken = '';
+let deviceId = '';
 
 const Spotify = {
     getAccessToken() {
@@ -22,7 +25,7 @@ const Spotify = {
             console.log('accessToken: ', accessToken);
             return accessToken;
         } else {
-            const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public user-read-playback-state user-modify-playback-state&redirect_uri=${redirectUri}`;
+            const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=${scopes}&redirect_uri=${redirectUri}`;
             window.location = accessUrl;
         }
     },
@@ -58,6 +61,7 @@ const Spotify = {
 
                 if (response.ok) {
                     const jsonResponse = await response.json();
+                    console.log(jsonResponse);
                     if (!jsonResponse.tracks) {
                         return [];
                     }
@@ -66,7 +70,8 @@ const Spotify = {
                         name: track.name,
                         artist: track.artists[0].name,
                         album: track.album.name,
-                        uri: track.uri
+                        uri: track.uri,
+                        previewUrl: track.preview_url
                     }));
                 }
             }
@@ -118,18 +123,20 @@ const Spotify = {
     async playTrack(track) {
         const accessToken = Spotify.getAccessToken();
         const headers = { Authorization: `Bearer ${accessToken}` };
-        let deviceId = '';
 
-        try {
-            const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
-                headers
-            });
-            if (response.ok) {
-                const jsonResponse = await response.json();
-                deviceId = jsonResponse.devices[0].id;
+        if (!deviceId) {
+            try {
+                const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
+                    headers
+                });
+                if (response.ok) {
+                    console.log(response);
+                    const jsonResponse = await response.json();
+                    deviceId = jsonResponse.devices[0].id;
+                }
+            } catch (error) {
+                console.log(error);
             }
-        } catch (error) {
-            console.log(error);
         }
 
         fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
